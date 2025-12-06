@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import z from "zod";
 import { loginUser } from "../../apicalls/auth";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const schema = z.object({
   identifier: z
@@ -23,6 +25,23 @@ const schema = z.object({
 //   password:123456
 // }
 const LoginPage = () => {
+  const {state,dispatch} = useAuth()
+  console.log(state)
+  if(state.isAuthenticated== false){
+    dispatch({
+      type:"LOGIN",
+      payload:{
+        token:"1234-poiu-098u-lok",
+        user:{
+          id:1,
+          name:"Farah Jama Gedi",
+          username:"farah"
+        }
+      }
+    })
+    console.log("Succesfully triggered the Dispatch FN")
+  }
+  const navigate = useNavigate()
   const [loading, setLoading] = useState(false);
 
   const {
@@ -38,14 +57,6 @@ const LoginPage = () => {
     const response = await loginUser(user);
     if (response.success) {
       toast.success(response.message);
-
-      dispatch({
-        type: "LOGIN",
-        payload: {
-          token: response.token,
-          user: response.activeUser,
-        },
-      });
 
       setLoading(false);
       navigate("/dashboard");
