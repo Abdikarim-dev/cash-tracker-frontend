@@ -6,6 +6,7 @@ import z from "zod";
 import { loginUser } from "../../apicalls/auth";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useEffect } from "react";
 
 const schema = z.object({
   identifier: z
@@ -25,23 +26,11 @@ const schema = z.object({
 //   password:123456
 // }
 const LoginPage = () => {
-  const {state,dispatch} = useAuth()
-  console.log(state)
-  if(state.isAuthenticated== false){
-    dispatch({
-      type:"LOGIN",
-      payload:{
-        token:"1234-poiu-098u-lok",
-        user:{
-          id:1,
-          name:"Farah Jama Gedi",
-          username:"farah"
-        }
-      }
-    })
-    console.log("Succesfully triggered the Dispatch FN")
-  }
-  const navigate = useNavigate()
+  const { state, dispatch } = useAuth();
+
+  const { isAuthenticated } = state;
+
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const {
@@ -58,6 +47,16 @@ const LoginPage = () => {
     if (response.success) {
       toast.success(response.message);
 
+      const { activeUser, token } = response;
+
+      dispatch({
+        type: "LOGIN",
+        payload: {
+          token,
+          activeUser,
+        },
+      });
+
       setLoading(false);
       navigate("/dashboard");
     } else {
@@ -65,6 +64,9 @@ const LoginPage = () => {
       toast.error(response.message);
     }
   };
+  useEffect(() => {
+    if (isAuthenticated) navigate("/dashboard");
+  }, [isAuthenticated, navigate]);
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 p-4">
       <form

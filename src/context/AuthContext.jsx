@@ -1,13 +1,13 @@
-import { useContext } from "react";
-import { useReducer } from "react";
-import { createContext } from "react";
+import { createContext, useContext, useReducer } from "react";
 
 // Create Context
 const AuthContext = createContext();
 // initialState
 const initialState = {
-  isAuthenticated: false,
-  user: null,
+  isAuthenticated: !!localStorage.getItem("token"), // boolean
+  // true : false : true
+  // false : true:false
+  user: JSON.parse(localStorage.getItem("user") || null),
 };
 // isAthenticated: true || false
 // user : userObject || null
@@ -17,10 +17,10 @@ const authReducer = (state, action) => {
   switch (action.type) {
     case "LOGIN":
       localStorage.setItem("token", action.payload.token);
-      localStorage.setItem("user", JSON.stringify(action.payload.user));
+      localStorage.setItem("user", JSON.stringify(action.payload.activeUser));
       return {
         isAuthenticated: true,
-        user: action.payload.user,
+        user: action.payload.activeUser,
       };
     case "LOGOUT":
       localStorage.removeItem("token");

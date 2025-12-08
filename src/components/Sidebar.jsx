@@ -3,13 +3,16 @@ import {
   FaHome,
   FaPiggyBank,
   FaSignOutAlt,
-  FaUsers
+  FaUsers,
 } from "react-icons/fa";
 import { FaAmazon } from "react-icons/fa6";
 
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 const Sidebar = () => {
+  const { dispatch } = useAuth();
 
   return (
     <div className="h-full w-16 lg:w-64 bg-white flex flex-col border-r border-gray-200">
@@ -63,6 +66,10 @@ const Sidebar = () => {
       </nav>
       <div className="flex items-center justify-center lg:justify-start p-4 border-t border-gray-200">
         <button
+          onClick={() => {
+            dispatch({ type: "LOGOUT" });
+            toast.error("User Logged out successfully")
+          }}
           className="flex items-center justify-center text-gray-600 hover:text-gray-800"
         >
           <FaSignOutAlt className={"lg:mr-2 text-lg"} />
