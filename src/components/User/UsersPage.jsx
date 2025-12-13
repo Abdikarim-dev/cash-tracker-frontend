@@ -4,20 +4,23 @@ import UserTableView from "./UserTableView";
 import { useState } from "react";
 
 const UsersPage = () => {
-  const [changeState, setChangeState] = useState(false);
+  const [createFormModal, setCreateModal] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <span className="text-3xl font-bold tracking-tight">Users</span>
         <button
-          onClick={() => setChangeState(!changeState)}
+          onClick={() => setCreateModal(!createFormModal)}
           className="flex items-center gap-0.5 rounded bg-black text-white px-4 py-2 cursor-pointer "
         >
           <PlusIcon className={"mr-2"} /> Create User
         </button>
       </div>
 
-      {changeState && <UserForm />}
+      {(createFormModal || editingUser) && (
+        <UserForm setCreateModal={setCreateModal} user={editingUser} setEditingUser={setEditingUser} />
+      )}
 
       <div>
         <input
@@ -30,7 +33,7 @@ const UsersPage = () => {
       </div>
 
       {/* <div>User Table View</div> */}
-      <UserTableView />
+      <UserTableView setEditingUser={setEditingUser} />
     </div>
   );
 };
