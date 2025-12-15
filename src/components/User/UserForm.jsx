@@ -4,37 +4,49 @@ import z from "zod";
 import { addUser, editUser } from "../../apicalls/user";
 import toast from "react-hot-toast";
 
-const schema = z.object({
-  fullname: z
-    .string()
-    .min(10, { message: "Fullname  must be at least 10 characters long" })
-    .max(40, {
-      message: "Fullname must be at maximum 40 characters long",
-    }),
-  username: z
-    .string()
-    .min(3, { message: "Username  must be at least 3 characters long" })
-    .max(20, {
-      message: "username must be at maximum 20 characters long",
-    }),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  role: z.enum(["ADMIN", "STAFF"]),
-  // image: z.string(),
-  password: z
-    .string()
-    .min(3, { message: "Password must be at least 3 characters long" })
-    .max(20, {
-      message: "username must be at maximum 20 characters long",
-    }),
-  confirmPassword: z
-    .string()
-    .min(3, { message: "Password must be at least 3 characters long" })
-    .max(20, {
-      message: "username must be at maximum 20 characters long",
-    }),
-});
+const acceptedImageTypes = ["image/png", "image/jpeg"];
 
+const schema = z
+  .object({
+    fullname: z
+      .string()
+      .min(10, { message: "Fullname  must be at least 10 characters long" })
+      .max(40, {
+        message: "Fullname must be at maximum 40 characters long",
+      }),
+    username: z
+      .string()
+      .min(3, { message: "Username  must be at least 3 characters long" })
+      .max(20, {
+        message: "username must be at maximum 20 characters long",
+      }),
+    email: z.string().email().optional(),
+    phone: z.string().min(1, { message: "Phone cannot be empty" }),
+    role: z.enum(["ADMIN", "STAFF"]),
+    image: z
+      .instanceof(FileList)
+      .refine((fileList) => fileList.length > 0, {
+        message: "Please upload an image",
+      })
+      .refine((filelists) => acceptedImageTypes.includes(filelists[0]?.type),{
+        message:"Only JPG and PNG images are allowed"
+      }),
+    password: z
+      .string()
+      .min(3, { message: "Password must be at least 3 characters long" })
+      .max(20, {
+        message: "username must be at maximum 20 characters long",
+      }),
+    confirmPassword: z.string(),
+  })
+  .refine((user) => user.password === user.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["password"],
+  })
+  .refine((user) => user.password === user.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 const UserForm = ({ user, setCreateModal, setEditingUser }) => {
   const {
     register,
@@ -98,7 +110,6 @@ const UserForm = ({ user, setCreateModal, setEditingUser }) => {
               {...register("fullname")}
               className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
               type="text"
-              required
             />
             {errors.fullname && (
               <p className="text-red-600 text-sm mt-1">
@@ -116,7 +127,6 @@ const UserForm = ({ user, setCreateModal, setEditingUser }) => {
               {...register("username")}
               className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
               type="text"
-              required
             />
             {errors.username && (
               <p className="text-red-600 text-sm mt-1">
@@ -134,7 +144,6 @@ const UserForm = ({ user, setCreateModal, setEditingUser }) => {
               {...register("email")}
               className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
               type="email"
-              required
             />
             {errors.email && (
               <p className="text-red-600 text-sm mt-1">
@@ -153,7 +162,6 @@ const UserForm = ({ user, setCreateModal, setEditingUser }) => {
               className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
               type="tel"
               name="phone"
-              required
             />
             {errors.phone && (
               <p className="text-red-600 text-sm mt-1">
@@ -170,11 +178,8 @@ const UserForm = ({ user, setCreateModal, setEditingUser }) => {
             <select
               {...register("role")}
               className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-              required
             >
-              <option value="" disabled>
-                Select a role
-              </option>
+              <option value="">Select a role</option>
               <option value="STAFF">Staff</option>
               <option value="ADMIN">Admin</option>
             </select>
@@ -189,9 +194,15 @@ const UserForm = ({ user, setCreateModal, setEditingUser }) => {
               Profile Image
             </label>
             <input
+              {...register("image")}
               className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
               type="file"
             />
+            {errors.image && (
+              <p className="text-red-600 text-sm mt-1">
+                {errors.image.message}
+              </p>
+            )}
           </div>
           {/* Password */}
           <div>
