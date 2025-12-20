@@ -1,23 +1,7 @@
-import { useEffect } from "react";
-import { useState } from "react";
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { getUsers } from "../../apicalls/user";
-import toast from "react-hot-toast";
 
-const UserTableView = ({ setEditingUser }) => {
-  const [users, setUsers] = useState([]);
-
-  useEffect(() => {
-    const getUsersFn = async () => {
-      const response = await getUsers();
-      if (response.success) {
-        setUsers(response.users);
-      } else {
-        toast.error(response?.message || "Fetching users failed");
-      }
-    };
-    getUsersFn();
-  }, [users]);
+const UserTableView = ({ setEditingUser,users }) => {
+  
 
   return (
     <div className="container mx-auto py-6">
@@ -66,7 +50,9 @@ const UserTableView = ({ setEditingUser }) => {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-3">
                     <img
-                      src={user.image}
+                      src={`${import.meta.env.VITE_BASE_URL}/images/${
+                        user.image
+                      }`}
                       alt="avatar"
                       className="w-12 h-12 rounded-full shadow-sm"
                     />

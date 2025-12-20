@@ -2,10 +2,27 @@ import { PlusIcon } from "lucide-react";
 import UserForm from "./UserForm";
 import UserTableView from "./UserTableView";
 import { useState } from "react";
+import { useEffect } from "react";
+import { getUsers } from "../../apicalls/user";
+import toast from "react-hot-toast";
 
 const UsersPage = () => {
+  const [getNewData, setGetNewData] = useState(false);
+  const [users, setUsers] = useState([]);
   const [createFormModal, setCreateModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+
+  useEffect(() => {
+    const getUsersFn = async () => {
+      const response = await getUsers();
+      if (response.success) {
+        setUsers(response.users);
+      } else {
+        toast.error(response?.message || "Fetching users failed");
+      }
+    };
+    getUsersFn();
+  }, [getNewData]);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -19,7 +36,13 @@ const UsersPage = () => {
       </div>
 
       {(createFormModal || editingUser) && (
-        <UserForm setCreateModal={setCreateModal} user={editingUser} setEditingUser={setEditingUser} />
+        <UserForm
+          getNewData={getNewData}
+          setGetNewData={setGetNewData}
+          setCreateModal={setCreateModal}
+          user={editingUser}
+          setEditingUser={setEditingUser}
+        />
       )}
 
       <div>
@@ -33,7 +56,7 @@ const UsersPage = () => {
       </div>
 
       {/* <div>User Table View</div> */}
-      <UserTableView setEditingUser={setEditingUser} />
+      <UserTableView users={users} setEditingUser={setEditingUser} />
     </div>
   );
 };

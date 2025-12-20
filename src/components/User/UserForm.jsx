@@ -28,8 +28,8 @@ const schema = z
       .refine((fileList) => fileList.length > 0, {
         message: "Please upload an image",
       })
-      .refine((filelists) => acceptedImageTypes.includes(filelists[0]?.type),{
-        message:"Only JPG and PNG images are allowed"
+      .refine((filelists) => acceptedImageTypes.includes(filelists[0]?.type), {
+        message: "Only JPG and PNG images are allowed",
       }),
     password: z
       .string()
@@ -47,7 +47,7 @@ const schema = z
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
-const UserForm = ({ user, setCreateModal, setEditingUser }) => {
+const UserForm = ({ user, setCreateModal, setEditingUser,getNewData,setGetNewData }) => {
   const {
     register,
     handleSubmit,
@@ -64,27 +64,36 @@ const UserForm = ({ user, setCreateModal, setEditingUser }) => {
     resolver: zodResolver(schema),
   });
   const handleUser = async (userToBeSent) => {
-    delete userToBeSent.confirmPassword;
+    // delete userToBeSent.confirmPassword;
+
+    const userFormData = new FormData();
+
+    userFormData.append("fullname", userToBeSent.fullname);
+    userFormData.append("username", userToBeSent.username);
+    userFormData.append("phone", userToBeSent.phone);
+    userFormData.append("email", userToBeSent.email);
+    userFormData.append("role", userToBeSent.role);
+    userFormData.append("password", userToBeSent.password);
+    userFormData.append("image", userToBeSent.image[0]);
 
     if (user) {
-      const userUpdate = {
-        id: user.id,
-        user: userToBeSent,
-      };
-      const response = await editUser(userUpdate);
+      userFormData.append("id", user.id);
+      const response = await editUser(userFormData,user.id);
 
       if (response.success) {
         toast.success(response?.message);
+        setGetNewData(!getNewData)
         setEditingUser(null);
         reset();
       } else {
         toast.error(response?.message);
       }
     } else {
-      const response = await addUser(userToBeSent);
+      const response = await addUser(userFormData);
 
       if (response.success) {
         toast.success(response?.message);
+        setGetNewData(!getNewData)
         setCreateModal(false);
         reset();
       } else {

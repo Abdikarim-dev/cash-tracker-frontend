@@ -19,9 +19,9 @@ export const addUser = async (user) => {
     }
 }
 
-export const editUser = async (payload) => {
+export const editUser = async (payload,id) => {
     try {
-        const res = await axiosInstance.patch(`/user/update/${payload.id}`, payload.user)
+        const res = await axiosInstance.patch(`/user/update/${id}`, payload)
         return res.data
     } catch (error) {
         return error?.response?.data
