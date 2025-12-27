@@ -5,12 +5,16 @@ import { useState } from "react";
 import { useEffect } from "react";
 import { getUsers } from "../../apicalls/user";
 import toast from "react-hot-toast";
+import DeleteConfirmationModal from "../DeleteConfirmationModal";
 
 const UsersPage = () => {
   const [getNewData, setGetNewData] = useState(false);
   const [users, setUsers] = useState([]);
   const [createFormModal, setCreateModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+
+  // const [deleteModal, setDeleteModal] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(null);
 
   useEffect(() => {
     const getUsersFn = async () => {
@@ -56,7 +60,20 @@ const UsersPage = () => {
       </div>
 
       {/* <div>User Table View</div> */}
-      <UserTableView users={users} setEditingUser={setEditingUser} />
+      <UserTableView
+        users={users}
+        setEditingUser={setEditingUser}
+        setDeletingUser={setDeletingUser}
+      />
+
+      {deletingUser && (
+        <DeleteConfirmationModal
+          modalState={Boolean(deletingUser)}
+          onCancel={() => {
+            setDeletingUser(null);
+          }}
+        />
+      )}
     </div>
   );
 };

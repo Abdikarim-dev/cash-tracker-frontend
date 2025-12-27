@@ -1,8 +1,6 @@
 import { FaEdit, FaTrash } from "react-icons/fa";
 
-const UserTableView = ({ setEditingUser,users }) => {
-  
-
+const UserTableView = ({ users, setEditingUser, setDeletingUser }) => {
   return (
     <div className="container mx-auto py-6">
       <div className="overflow-x-auto">
@@ -107,6 +105,9 @@ const UserTableView = ({ setEditingUser,users }) => {
 
                   {/* Delete Button */}
                   <button
+                    onClick={() => {
+                      setDeletingUser(user);
+                    }}
                     className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 hover:text-red-700 transition-colors duration-200 shadow-sm"
                     title="Delete User"
                   >

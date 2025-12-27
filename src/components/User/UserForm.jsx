@@ -3,51 +3,78 @@ import { useForm } from "react-hook-form";
 import z from "zod";
 import { addUser, editUser } from "../../apicalls/user";
 import toast from "react-hot-toast";
+import { useState } from "react";
 
 const acceptedImageTypes = ["image/png", "image/jpeg"];
+const MAX_SIZE_IMAGE = 1024 * 1024 * 3; // 3MB MAX
 
-const schema = z
-  .object({
-    fullname: z
-      .string()
-      .min(10, { message: "Fullname  must be at least 10 characters long" })
-      .max(40, {
-        message: "Fullname must be at maximum 40 characters long",
-      }),
-    username: z
-      .string()
-      .min(3, { message: "Username  must be at least 3 characters long" })
-      .max(20, {
-        message: "username must be at maximum 20 characters long",
-      }),
-    email: z.string().email().optional(),
-    phone: z.string().min(1, { message: "Phone cannot be empty" }),
-    role: z.enum(["ADMIN", "STAFF"]),
-    image: z
-      .instanceof(FileList)
-      .refine((fileList) => fileList.length > 0, {
-        message: "Please upload an image",
-      })
-      .refine((filelists) => acceptedImageTypes.includes(filelists[0]?.type), {
-        message: "Only JPG and PNG images are allowed",
-      }),
-    password: z
-      .string()
-      .min(3, { message: "Password must be at least 3 characters long" })
-      .max(20, {
-        message: "username must be at maximum 20 characters long",
-      }),
-    confirmPassword: z.string(),
-  })
-  .refine((user) => user.password === user.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["password"],
-  })
-  .refine((user) => user.password === user.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-const UserForm = ({ user, setCreateModal, setEditingUser,getNewData,setGetNewData }) => {
+const schema = (isEdit = false) =>
+  z
+    .object({
+      fullname: z
+        .string()
+        .min(10, { message: "Fullname  must be at least 10 characters long" })
+        .max(40, {
+          message: "Fullname must be at maximum 40 characters long",
+        }),
+      username: z
+        .string()
+        .min(3, { message: "Username  must be at least 3 characters long" })
+        .max(20, {
+          message: "username must be at maximum 20 characters long",
+        }),
+      email: z.string().email(),
+      phone: z.string().min(1, { message: "Phone cannot be empty" }),
+      role: z.enum(["ADMIN", "STAFF"]),
+      image: z
+        .instanceof(FileList)
+        .refine(
+          (files) =>
+            files.length === 0 || acceptedImageTypes.includes(files[0]?.type),
+          {
+            message:
+              "Only JPG and PNG images are allowed",
+          }
+        )
+        .refine((file) => file.length === 0 || file[0].size <= MAX_SIZE_IMAGE, {
+          message:
+            "Image Must be less than or equal 3MB",
+        })
+        .optional(),
+      password: isEdit
+        ? z
+            .string()
+            // .min(3, { message: "Password must be at least 3 characters long" })
+            .max(20, {
+              message: "username must be at maximum 20 characters long",
+            })
+            .optional()
+        : z
+            .string()
+            .min(3, { message: "Password must be at least 3 characters long" })
+            .max(20, {
+              message: "username must be at maximum 20 characters long",
+            }),
+      confirmPassword: isEdit ? z.string().optional() : z.string(),
+    })
+    .refine((user) => user.password === user.confirmPassword, {
+      message: "Passwords do not match",
+      path: ["password"],
+    })
+    .refine((user) => user.password === user.confirmPassword, {
+      message: "Passwords do not match",
+      path: ["confirmPassword"],
+    });
+const UserForm = ({
+  user,
+  setCreateModal,
+  setEditingUser,
+  getNewData,
+  setGetNewData,
+}) => {
+  const isEdit = Boolean(user);
+  const [changePassword, setChangePassword] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -61,10 +88,11 @@ const UserForm = ({ user, setCreateModal, setEditingUser,getNewData,setGetNewDat
       email: user?.email,
       role: user?.role,
     },
-    resolver: zodResolver(schema),
+    resolver: zodResolver(schema(isEdit)),
   });
   const handleUser = async (userToBeSent) => {
     // delete userToBeSent.confirmPassword;
+    console.log(userToBeSent);
 
     const userFormData = new FormData();
 
@@ -73,27 +101,29 @@ const UserForm = ({ user, setCreateModal, setEditingUser,getNewData,setGetNewDat
     userFormData.append("phone", userToBeSent.phone);
     userFormData.append("email", userToBeSent.email);
     userFormData.append("role", userToBeSent.role);
-    userFormData.append("password", userToBeSent.password);
     userFormData.append("image", userToBeSent.image[0]);
 
     if (user) {
-      userFormData.append("id", user.id);
-      const response = await editUser(userFormData,user.id);
+      if (userToBeSent?.password) {
+        userFormData.append("password", userToBeSent.password);
+      }
+      const response = await editUser(userFormData, user.id);
 
       if (response.success) {
         toast.success(response?.message);
-        setGetNewData(!getNewData)
+        setGetNewData(!getNewData);
         setEditingUser(null);
         reset();
       } else {
         toast.error(response?.message);
       }
     } else {
+      userFormData.append("password", userToBeSent.password);
       const response = await addUser(userFormData);
 
       if (response.success) {
         toast.success(response?.message);
-        setGetNewData(!getNewData)
+        setGetNewData(!getNewData);
         setCreateModal(false);
         reset();
       } else {
@@ -213,40 +243,59 @@ const UserForm = ({ user, setCreateModal, setEditingUser,getNewData,setGetNewDat
               </p>
             )}
           </div>
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Password
-            </label>
-            <input
-              {...register("password")}
-              type="password"
-              placeholder="********"
-              className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-            {errors.password && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.password.message}
-              </p>
-            )}
-          </div>
-          {/* Password */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Confirm Password
-            </label>
-            <input
-              {...register("confirmPassword")}
-              type="password"
-              placeholder="********"
-              className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-            {errors.confirmPassword && (
-              <p className="text-red-600 text-sm mt-1">
-                {errors.confirmPassword.message}
-              </p>
-            )}
-          </div>
+          {isEdit && (
+            <div className="flex items-center justify-center">
+              <span>
+                I{changePassword ? " don't" : ""} want to change my password
+              </span>
+              <a
+                className="text-red-600 underline cursor-pointer text-sm"
+                onClick={() => {
+                  setChangePassword(!changePassword);
+                }}
+              >
+                Click here
+              </a>
+            </div>
+          )}
+          {(changePassword || !isEdit) && (
+            <>
+              {/* Password */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Password
+                </label>
+                <input
+                  {...register("password")}
+                  type="password"
+                  placeholder="********"
+                  className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                {errors.password && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.password.message}
+                  </p>
+                )}
+              </div>
+              {/* Confirm Password */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  Confirm Password
+                </label>
+                <input
+                  {...register("confirmPassword")}
+                  type="password"
+                  placeholder="********"
+                  className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
+                />
+                {errors.confirmPassword && (
+                  <p className="text-red-600 text-sm mt-1">
+                    {errors.confirmPassword.message}
+                  </p>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Buttons */}
