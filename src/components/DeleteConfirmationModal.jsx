@@ -5,7 +5,12 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { BsExclamationTriangle } from "react-icons/bs";
-export default function DeleteConfirmationModal({ modalState, onCancel }) {
+export default function DeleteConfirmationModal({
+  object,
+  title,
+  modalState,
+  onCancel,
+}) {
   return (
     <Dialog
       open={modalState} // the state that opens the modal
@@ -36,11 +41,11 @@ export default function DeleteConfirmationModal({ modalState, onCancel }) {
                     as="h3"
                     className="text-base font-semibold text-gray-900"
                   >
-                    Delete Abdikarim Ali {/* Title */}
+                    Delete {title[0].toUpperCase()}{title.slice(1)} {/* Title */}
                   </DialogTitle>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
-                      Are you sure you want to this User:Cabdikariin10? <br />{" "}
+                      Are you sure you want to this User:{object.name}? <br />{" "}
                       This action cannot be undone.
                     </p>
                   </div>

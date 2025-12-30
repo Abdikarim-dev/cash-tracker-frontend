@@ -72,6 +72,8 @@ const UsersPage = () => {
           onCancel={() => {
             setDeletingUser(null);
           }}
+          title={'user'}
+          object={deletingUser}
         />
       )}
     </div>
