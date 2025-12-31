@@ -5,12 +5,34 @@ import {
   DialogTitle,
 } from "@headlessui/react";
 import { BsExclamationTriangle } from "react-icons/bs";
+import { dynamicDelete } from "../apicalls/dynamicDelete";
+import toast from "react-hot-toast";
 export default function DeleteConfirmationModal({
   object,
   title,
   modalState,
   onCancel,
+  getNewData,
+  setGetNewData,
 }) {
+  const handleDelete = async (object) => {
+    const objectToBeDeleted = {
+      id: object.id,
+      title: title,
+    };
+    try {
+      const res = await dynamicDelete(objectToBeDeleted);
+      if (res.success) {
+        toast.success(res.message);
+        setGetNewData(!getNewData);
+        onCancel();
+      } else {
+        toast.error(res.message);
+      }
+    } catch (error) {
+      console.log(error.response.data);
+    }
+  };
   return (
     <Dialog
       open={modalState} // the state that opens the modal
@@ -41,7 +63,8 @@ export default function DeleteConfirmationModal({
                     as="h3"
                     className="text-base font-semibold text-gray-900"
                   >
-                    Delete {title[0].toUpperCase()}{title.slice(1)} {/* Title */}
+                    Delete {title[0].toUpperCase()}
+                    {title.slice(1)} {/* Title */}
                   </DialogTitle>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
@@ -55,7 +78,7 @@ export default function DeleteConfirmationModal({
             <div className="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
               <button
                 type="button"
-                // Oncancel
+                onClick={() => handleDelete(object)}
                 className="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-xs hover:bg-red-500 sm:ml-3 sm:w-auto"
               >
                 Delete

@@ -72,6 +72,8 @@ const UsersPage = () => {
           onCancel={() => {
             setDeletingUser(null);
           }}
+          getNewData={getNewData}
+          setGetNewData={setGetNewData}
           title={'user'}
           object={deletingUser}
         />
