@@ -32,13 +32,11 @@ const schema = (isEdit = false) =>
           (files) =>
             files.length === 0 || acceptedImageTypes.includes(files[0]?.type),
           {
-            message:
-              "Only JPG and PNG images are allowed",
+            message: "Only JPG and PNG images are allowed",
           }
         )
         .refine((file) => file.length === 0 || file[0].size <= MAX_SIZE_IMAGE, {
-          message:
-            "Image Must be less than or equal 3MB",
+          message: "Image Must be less than or equal 3MB",
         })
         .optional(),
       password: isEdit
@@ -73,6 +71,7 @@ const UserForm = ({
   setGetNewData,
 }) => {
   const isEdit = Boolean(user);
+  const [image, setImage] = useState(user?.image ? user.image : ""); // 92183479-1248.png
   const [changePassword, setChangePassword] = useState(false);
 
   const {
@@ -233,9 +232,11 @@ const UserForm = ({
               Profile Image
             </label>
             <input
+              // value={image}
               {...register("image")}
               className="mt-1 w-full border border-gray-300 rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500"
               type="file"
+              onChange={(e) => setImage(e.target.files[0])}
             />
             {errors.image && (
               <p className="text-red-600 text-sm mt-1">
@@ -243,6 +244,22 @@ const UserForm = ({
               </p>
             )}
           </div>
+          {/* Image Preview Section */}
+          {image && (
+            <div className="flex justify-center">
+              <div className="relative w-48 h-48 rounded-xl overflow-hidden border-2 border-indigo-200 bg-gray-50 shadow-md">
+                <img
+                  src={
+                    image instanceof File
+                      ? URL.createObjectURL(image)
+                      : `${import.meta.env.VITE_BASE_URL}/images/${image}`
+                  }
+                  alt="User profile preview"
+                  className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
+                />
+              </div>
+            </div>
+          )}
           {isEdit && (
             <div className="flex items-center justify-center">
               <span>

@@ -1,51 +1,51 @@
 import { PlusIcon } from "lucide-react";
-import TransactionForm from "./TransactionForm";
-import TransactionTableView from "./TransactionTableView";
+import UserForm from "./UserForm";
+import UserTableView from "./UserTableView";
 import { useState } from "react";
 import { useEffect } from "react";
-import { getTransactions } from "../../apicalls/transaction";
+import { getUsers } from "../../apicalls/user";
 import toast from "react-hot-toast";
 import DeleteConfirmationModal from "../DeleteConfirmationModal";
 
-const TransactionsPage = () => {
+const UsersPage = () => {
   const [getNewData, setGetNewData] = useState(false);
-  const [transactions, setTransactions] = useState([]);
+  const [users, setUsers] = useState([]);
   const [createFormModal, setCreateModal] = useState(false);
-  const [editingTransaction, setEditingTransaction] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
 
   // const [deleteModal, setDeleteModal] = useState(false);
-  const [deletingTransaction, setDeletingTransaction] = useState(null);
+  const [deletingUser, setDeletingUser] = useState(null);
 
   useEffect(() => {
-    const getTransactionsFn = async () => {
-      const response = await getTransactions();
+    const getUsersFn = async () => {
+      const response = await getUsers();
       if (response.success) {
-        setTransactions(response.transactions);
+        setUsers(response.users);
       } else {
-        toast.error(response?.message || "Fetching Transactions failed");
+        toast.error(response?.message || "Fetching users failed");
       }
     };
-    getTransactionsFn();
+    getUsersFn();
   }, [getNewData]);
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-3xl font-bold tracking-tight">Transactions</span>
+        <span className="text-3xl font-bold tracking-tight">Users</span>
         <button
           onClick={() => setCreateModal(!createFormModal)}
           className="flex items-center gap-0.5 rounded bg-black text-white px-4 py-2 cursor-pointer "
         >
-          <PlusIcon className={"mr-2"} /> Create Transaction
+          <PlusIcon className={"mr-2"} /> Create User
         </button>
       </div>
 
-      {(createFormModal || editingTransaction) && (
-        <TransactionForm
+      {(createFormModal || editingUser) && (
+        <UserForm
           getNewData={getNewData}
           setGetNewData={setGetNewData}
           setCreateModal={setCreateModal}
-          transaction={editingTransaction}
-          setEditingTransaction={setEditingTransaction}
+          user={editingUser}
+          setEditingUser={setEditingUser}
         />
       )}
 
@@ -59,27 +59,27 @@ const TransactionsPage = () => {
         />
       </div>
 
-      {/* <div>Transaction Table View</div> */}
-      <TransactionTableView
-        Transactions={transactions}
-        setEditingTransaction={setEditingTransaction}
-        setDeletingTransaction={setDeletingTransaction}
+      {/* <div>User Table View</div> */}
+      <UserTableView
+        users={users}
+        setEditingUser={setEditingUser}
+        setDeletingUser={setDeletingUser}
       />
 
-      {deletingTransaction && (
+      {deletingUser && (
         <DeleteConfirmationModal
-          modalState={Boolean(deletingTransaction)}
+          modalState={Boolean(deletingUser)}
           onCancel={() => {
-            setDeletingTransaction(null);
+            setDeletingUser(null);
           }}
           getNewData={getNewData}
           setGetNewData={setGetNewData}
-          title={'transaction'}
-          object={deletingTransaction}
+          title={'user'}
+          object={deletingUser}
         />
       )}
     </div>
   );
 };
 
-export default TransactionsPage;
+export default UsersPage;
